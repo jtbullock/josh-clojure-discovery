@@ -75,6 +75,18 @@
 (println (merge-with + (hash-map "Name" "Josh") (hash-map "Age" 34)))
 
 ;; Atoms
+(def sample_atom (atom 10))
+
+(add-watch sample_atom :watcher 
+     (fn [_key _atom old_state new_state]
+       ( println "sample_atom changed from " old_state " to " new_state )))
+
+(println "1st value: " @sample_atom)
+(reset! sample_atom 11)
+(println "2nd value: " @sample_atom)
+(swap! sample_atom inc)
+
+;; Agents
 
 
 (defn -main
