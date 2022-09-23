@@ -87,6 +87,28 @@
 (swap! sample_atom inc)
 
 ;; Agents
+(def tickets-sold ( agent 0 ))
+(send tickets-sold + 15)
+(await-for 1000 tickets-sold)
+println "Tickets sold: " @tickets-sold
+
+;; Math
+(println(+ 1 2 3))
+(println(- 5 3 2))
+(println(* 2 5))
+(println(/ 10 5))
+(println(mod 10 3))
+
+(println(inc 5))
+(println(dec 5))
+
+(println(Math/abs -10))
+
+(println(rand-int 20))
+
+(println(Math/PI))
+
+;; functions
 
 
 (defn -main
