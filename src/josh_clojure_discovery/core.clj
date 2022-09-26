@@ -22,7 +22,7 @@
   (println "Hello, World!"))
 
 ;; Format print out stuff
-(def aString "I'm a string!") 
+(def aString "I'm a string!")
 (def aLong 15)
 (format "This is a string: %s" aString)
 (format "5 spaces and %5d" aLong)
@@ -75,6 +75,92 @@
 (println (merge-with + (hash-map "Name" "Josh") (hash-map "Age" 34)))
 
 ;; Atoms
+(def sample_atom (atom 10))
+
+(add-watch sample_atom :watcher
+           (fn [_key _atom old_state new_state]
+             (println "sample_atom changed from " old_state " to " new_state)))
+
+(println "1st value: " @sample_atom)
+(reset! sample_atom 11)
+(println "2nd value: " @sample_atom)
+(swap! sample_atom inc)
+
+;; Agents
+(def tickets-sold (agent 0))
+(send tickets-sold + 15)
+(await-for 1000 tickets-sold)
+println "Tickets sold: " @tickets-sold
+
+;; Math
+(println (+ 1 2 3))
+(println (- 5 3 2))
+(println (* 2 5))
+(println (/ 10 5))
+(println (mod 10 3))
+
+(println (inc 5))
+(println (dec 5))
+
+(println (Math/abs -10))
+
+(println (rand-int 20))
+
+(println (Math/PI))
+
+;; Simple functions
+(defn get-sum
+  "Add two things together!"
+  [x y]
+  (+ x y))
+
+(defn get-sum-more
+  ([x y z] (+ x y z))
+  ([x y] (+ x y)))
+
+(defn hello-you
+  [name]
+  (println "Hello " name))
+
+(defn hello-all
+  [& names]
+  (map hello-you names))
+
+(hello-all "Josh" "Randy" "Kashi")
+
+;; Decision making
+;; Equality: =, not=
+(println (= 4 5))
+(println (not= 4 5))
+(println (and true false))
+(println (or true false))
+(println (not (or true false)))
+
+(defn can-vote [age]
+  (if (>= age 18)
+    (println "You can vote!")
+    (println "You can't vote")))
+
+(defn can-vote-when [age]
+  (when (>= age 18)
+    (println "You can vote!")
+    (println "You can't drink")))
+
+(defn what-do [age]
+  (if (>= age 18)
+    (do (println "You can't drink!")
+        (println "You can drive"))
+    (println "You can't vote")))
+
+(defn what-grade [age]
+  (cond
+    (< age 5) (println "Preschool")
+    (= age 5) (println "Kindergarten")
+    (and (> age 5) (<= age 18)) (format "Go to grade %d" (- age 5))
+    :else (println "Go to college")))
+
+;; looping
+
 
 
 (defn -main
