@@ -127,9 +127,8 @@
 ; (select-*-where :people :id 4)
 ( defn select-*-where
   [ table-name field field-value ]
-  ( let [ record-index ( get ( get-in ( read-db ) [ table-name :indexes field ] ) field-value ) ]
-    ( get ( get-in ( read-db ) [ table-name :data ] ) record-index )
-  ) )
+  ( let [ record-index ( get-in ( read-db ) [ table-name :indexes field field-value ] ) ]
+    ( get-in ( read-db ) [ table-name :data record-index ] ) ) )
 
 {
   :clients {
