@@ -23,23 +23,24 @@
       sc/mappify
       (sc/cast-with {:winner_sets_won sc/->int :loser_sets_won sc/->int})
       (reduce (fn [acc {:keys [winner_slug loser_slug]}]
-                (-> acc
-                 (update-in [:player-ratings winner_slug] 
-                            (fn [rating] 
-                              (let [defaulted-winner-rating (or rating 0)
-                                    defaulted-loser-rating (or (get-in acc [:player-ratings loser_slug]) 0)
-                                    winner-probability (match-probability defaulted-winner-rating defaulted-loser-rating)]
-                                (recalculate-rating defaulted-winner-rating winner-probability 1 k-factor))))
-                 (update-in [:player-ratings loser_slug] 
-                            (fn [rating] 
-                              (let [defaulted-winner-rating (or (get-in acc [:player-ratings winner_slug]) 0)
-                                    defaulted-loser-rating (or rating 0)
-                                    loser-probability (match-probability defaulted-loser-rating defaulted-winner-rating)]
-                                (recalculate-rating defaulted-loser-rating loser-probability 1 k-factor))))
-
-                ;(update-in acc [:player-ratings loser_slug] (fn [rating] (recalculate-rating rating (match-probability rating (get-in acc [:player-ratings winner_slug])) 0 k-factor)))
-                 (update :total_matches #(inc %))))
-              
+                (let [winner_rating (or (get-in acc [:player_ratings winner_slug]) 400) 
+                      loser_rating (or (get-in acc [:player_ratings loser_slug]) 400)
+                      winner_probability (match-probability winner_rating loser_rating) 
+                      loser_probability (match-probability loser_rating winner_rating)
+                      probable_winner ( if ( > winner_probability loser_probability ) winner_slug loser_slug )]
+                 (-> acc
+                  (update-in [:player_ratings winner_slug] #(recalculate-rating (or % 400) winner_probability 1 k-factor))
+                  (update-in [:player_ratings loser_slug] #(recalculate-rating (or % 400) loser_probability 0 k-factor))
+                  (update :total_matches #(inc %))
+                  (update :prediction_count #(if (= winner_probability loser_probability) % (inc %)))
+                  (update :success_count #(if (= probable_winner winner_slug) (inc %) %))
+                 )))
        {:player_ratings {}, :success_count 0, :total_matches 0, :prediction_count 0}))))
      
-    
+(defn query-game-records []
+  (with-open [r (io/reader csv-path)]
+    (->> (csv/read-csv r)
+      sc/mappify
+      (sc/cast-with {:winner_sets_won sc/->int :loser_sets_won sc/->int})
+      count
+         )))
