@@ -16,24 +16,26 @@
 
 (def csv-path "resources/match_scores_1991-2016_unindexed_csv.csv")
 
+; Activity 5.01
 (defn process-ratings
   [csv-path k-factor]
   (with-open [r (io/reader csv-path)]
     (->> (csv/read-csv r)
       sc/mappify
-      (sc/cast-with {:winner_sets_won sc/->int :loser_sets_won sc/->int})
+      ;(sc/cast-with {:winner_sets_won sc/->int :loser_sets_won sc/->int})
       (reduce (fn [acc {:keys [winner_slug loser_slug]}]
-                (let [winner_rating (or (get-in acc [:player_ratings winner_slug]) 400) 
-                      loser_rating (or (get-in acc [:player_ratings loser_slug]) 400)
+                (let [winner_rating (get-in acc [:player_ratings winner_slug] 400) 
+                      loser_rating (get-in acc [:player_ratings loser_slug] 400)
                       winner_probability (match-probability winner_rating loser_rating) 
                       loser_probability (match-probability loser_rating winner_rating)
-                      probable_winner ( if ( > winner_probability loser_probability ) winner_slug loser_slug )]
+                      able_to_predict? (not (= winner_probability loser_probability))
+                      predition_correct? ( > winner_probability loser_probability )]
                  (-> acc
-                  (update-in [:player_ratings winner_slug] #(recalculate-rating (or % 400) winner_probability 1 k-factor))
-                  (update-in [:player_ratings loser_slug] #(recalculate-rating (or % 400) loser_probability 0 k-factor))
-                  (update :total_matches #(inc %))
-                  (update :prediction_count #(if (= winner_probability loser_probability) % (inc %)))
-                  (update :success_count #(if (= probable_winner winner_slug) (inc %) %))
+                  (assoc-in [:player_ratings winner_slug] (recalculate-rating winner_rating winner_probability 1 k-factor))
+                  (assoc-in [:player_ratings loser_slug] (recalculate-rating loser_rating loser_probability 0 k-factor))
+                  (update :total_matches inc)
+                  (update :prediction_count #(if able_to_predict? (inc %) %))
+                  (update :success_count #(if predition_correct? (inc %) %))
                  )))
        {:player_ratings {}, :success_count 0, :total_matches 0, :prediction_count 0}))))
      
